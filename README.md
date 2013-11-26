@@ -12,8 +12,6 @@ Because Fantasy lists are lazy, it won't try to evaluate the possible
 infinite list immediately because it would never finish. It'll wait to 
 see what you want to get out of that infinite lists.
 
-(Note: `take` isn't currently implemented)
-
 ## Fantasy Land Compatible
 
 [
