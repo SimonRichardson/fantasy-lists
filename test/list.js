@@ -5,33 +5,54 @@ var λ = require('fantasy-check/src/adapters/nodeunit'),
 
     helpers = require('fantasy-helpers'),
     combinators = require('fantasy-combinators'),
+
+    Identity = require('fantasy-identities'),
     List = require('../fantasy-lists'),
 
     identity = combinators.identity;
 
+λ.goal = 10;
+
+function concat(a, b) {
+    return a.concat(b);
+}
+
+function show(a) {
+    return '[' + a.fold([], concat).toString() + ']';
+}
+
+function run(a) {
+    return Identity.of(show(a));
+}
+
 exports.list = {
 
     // Applicative Functor tests
-    'All (Applicative)': applicative.laws(λ)(List, identity),
-    'Identity (Applicative)': applicative.identity(λ)(List, identity),
-    'Composition (Applicative)': applicative.composition(λ)(List, identity),
-    'Homomorphism (Applicative)': applicative.homomorphism(λ)(List, identity),
-    'Interchange (Applicative)': applicative.interchange(λ)(List, identity),
+    'All (Applicative)': applicative.laws(λ)(List, run),
+    'Identity (Applicative)': applicative.identity(λ)(List, run),
+    'Composition (Applicative)': applicative.composition(λ)(List, run),
+    'Homomorphism (Applicative)': applicative.homomorphism(λ)(List, run),
+    'Interchange (Applicative)': applicative.interchange(λ)(List, run),
 
     // Functor tests
-    'All (Functor)': functor.laws(λ)(List.of, identity),
-    'Identity (Functor)': functor.identity(λ)(List.of, identity),
-    'Composition (Functor)': functor.composition(λ)(List.of, identity),
+    'All (Functor)': functor.laws(λ)(List.of, run),
+    'Identity (Functor)': functor.identity(λ)(List.of, run),
+    'Composition (Functor)': functor.composition(λ)(List.of, run),
 
     // Monad tests
-    'All (Monad)': monad.laws(λ)(List, identity),
-    'Left Identity (Monad)': monad.leftIdentity(λ)(List, identity),
-    'Right Identity (Monad)': monad.rightIdentity(λ)(List, identity),
-    'Associativity (Monad)': monad.associativity(λ)(List, identity),
+    'All (Monad)': monad.laws(λ)(List, run),
+    'Left Identity (Monad)': monad.leftIdentity(λ)(List, run),
+    'Right Identity (Monad)': monad.rightIdentity(λ)(List, run),
+    'Associativity (Monad)': monad.associativity(λ)(List, run),
 
     // Manual tests
-    'test': function(test) {
-        console.log(List.Cons(1, List.Cons(2, List.Nil)).concat(List.Cons('a', List.Cons('b', List.Nil))));
-        test.done();
-    }
+    'when using concat should concat in correct order': λ.check(
+        function(a, b) {
+            var x = List.fromArray(a),
+                y = List.fromArray(b);
+
+            return show(x.concat(y)) === '[' + a.concat(b).toString() + ']';
+        },
+        [λ.arrayOf(Number), λ.arrayOf(Number)]
+    )
 };

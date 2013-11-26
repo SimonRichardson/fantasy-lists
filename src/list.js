@@ -2,19 +2,34 @@ var bounces = require('bounces'),
     daggy = require('daggy'),
     combinators = require('fantasy-combinators'),
 
+    constant = combinators.constant,
     identity = combinators.identity,
 
     List = daggy.taggedSum({
-        Cons: ['car', 'cdr'],
+        Cons: ['head', 'tail'],
         Nil: []
     });
 
 // Methods
 List.of = function(x) {
-    return List.Cons(x, List.Nil);
+    return List.Cons(x, function() {
+        return List.Nil;
+    });
 };
 List.empty = function() {
     return List.Nil;
+};
+List.fromArray = function(a) {
+    var rec = function(y) {
+        if (y < a.length) {
+            var next = y + 1,
+                head = a.slice(y, next);
+            return List.Cons(head, function() {
+                return rec(next);
+            });
+        } else return List.Nil;
+    };
+    return rec(0);
 };
 List.prototype.chain = function(f) {
     return this.fold(
@@ -32,7 +47,7 @@ List.prototype.fold = function(v, f) {
             },
             Cons: function() {
                 return bounces.cont(function() {
-                    return rec(a.cdr, f(b, a.car));
+                    return rec(a.tail(), f(b, a.head));
                 });
             }
         });
@@ -47,48 +62,26 @@ List.prototype.ap = function(a) {
     });
 };
 List.prototype.concat = function(x) {
-    var rec = function(a, b, c) {
-        return b.cata({
-            Nil: function() {
-                return c.cata({
-                    Nil: function() {
-                        return bounces.done(a);
-                    },
-                    Cons: function() {
-                        return bounces.cont(function() {
-                            return rec(List.Cons(c.car, a), List.Nil, c.cdr);
-                        });
-                    }
-                });
-            },
+    return this.reverse().fold(x, function(a, b) {
+        return a.cata({
+            Nil: constant(a),
             Cons: function() {
-                return bounces.cont(function() {
-                    return rec(List.Cons(b.car, a), b.cdr, c);
-                });
+               return List.Cons(b, constant(a));
             }
         });
-    };
-    return bounces.trampoline(rec(List.Nil, x.reverse(), this.reverse()));
+    });
 };
 List.prototype.map = function(f) {
     return this.chain(function(x) {
-        return List.Cons(f(x), List.Nil);
+        return List.Cons(f(x), function(){
+            return List.Nil;
+        });
     });
 };
 List.prototype.reverse = function() {
-    var rec = function(a, b) {
-        return b.cata({
-            Nil: function() {
-                return bounces.done(a);
-            },
-            Cons: function(x, y) {
-                return bounces.cont(function() {
-                    return rec(List.Cons(x, a), y);
-                });
-            }
-        });
-    };
-    return bounces.trampoline(rec(List.Nil, this));
+    return this.fold(List.Nil, function(a, b) {
+        return List.Cons(b, constant(a));
+    });
 };
 
 // Export
