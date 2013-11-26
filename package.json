@@ -1,0 +1,40 @@
+{
+  "name": "fantasy-lists",
+  "version": "0.0.1",
+  "description": "Identity data structure.",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/SimonRichardson/fantasy-lists.git"
+  },
+  "keywords": [
+    "fantasyland",
+    "list",
+    "monad"
+  ],
+  "author": "Simon Richardson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SimonRichardson/fantasy-lists/issues"
+  },
+  "dependencies": {
+    "bounces": "0.0.x",
+    "daggy": "0.0.x",
+    "fantasy-combinators": "0.0.x"
+  },
+  "devDependencies": {
+    "grunt-cli": "0.1.9",
+    "grunt": "0.4.x",
+    "grunt-contrib-jshint": "0.6.x",
+    "grunt-contrib-nodeunit": "0.2.0",
+    "fantasy-check": "0.1.6",
+    "fantasy-helpers": "0.0.x"
+  },
+  "scripts": {
+      "test": "grunt"
+  },
+  "files": [
+      "fantasy-lists.js", 
+      "src/*.js"
+  ],
+  "main": "fantasy-lists.js"
+}
