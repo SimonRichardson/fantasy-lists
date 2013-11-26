@@ -11,9 +11,7 @@ var daggy = require('daggy'),
 
 // Methods
 List.of = function(x) {
-    return List.Cons(x, function() {
-        return List.Nil;
-    });
+    return List.Cons(x, constant(List.Nil));
 };
 List.empty = function() {
     return List.Nil;
@@ -81,9 +79,7 @@ List.prototype.concat = function(x) {
 };
 List.prototype.map = function(f) {
     return this.chain(function(x) {
-        return List.Cons(f(x), function(){
-            return List.Nil;
-        });
+        return List.of(f(x));
     });
 };
 List.prototype.reverse = function() {
