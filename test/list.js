@@ -2,6 +2,7 @@ var λ = require('fantasy-check/src/adapters/nodeunit'),
     applicative = require('fantasy-check/src/laws/applicative'),
     functor = require('fantasy-check/src/laws/functor'),
     monad = require('fantasy-check/src/laws/monad'),
+    monoid = require('fantasy-check/src/laws/monoid'),
 
     helpers = require('fantasy-helpers'),
     combinators = require('fantasy-combinators'),
@@ -9,9 +10,8 @@ var λ = require('fantasy-check/src/adapters/nodeunit'),
     Identity = require('fantasy-identities'),
     List = require('../fantasy-lists'),
 
-    identity = combinators.identity;
-
-λ.goal = 10;
+    identity = combinators.identity,
+    randomRange = helpers.randomRange;
 
 function concat(a, b) {
     return a.concat(b);
@@ -45,6 +45,12 @@ exports.list = {
     'Right Identity (Monad)': monad.rightIdentity(λ)(List, run),
     'Associativity (Monad)': monad.associativity(λ)(List, run),
 
+    // Monoid tests
+    'All (Monoid)': monoid.laws(λ)(List, run),
+    'leftIdentity (Monoid)': monoid.leftIdentity(λ)(List, run),
+    'rightIdentity (Monoid)': monoid.rightIdentity(λ)(List, run),
+    'associativity (Monoid)': monoid.associativity(λ)(List, run),
+
     // Manual tests
     'when using concat should concat in correct order': λ.check(
         function(a, b) {
@@ -53,6 +59,15 @@ exports.list = {
 
             return show(x.concat(y)) === '[' + a.concat(b).toString() + ']';
         },
-        [λ.arrayOf(Number), λ.arrayOf(Number)]
+        [λ.arrayOf(λ.AnyVal), λ.arrayOf(λ.AnyVal)]
+    ),
+    'when using take should take correct number': λ.check(
+        function(a) {
+            var x = List.fromArray(a),
+                len = a.length,
+                rnd = Math.floor(randomRange(0, len > 1 ? len : 0));
+            return show(x.take(rnd)) === '[' + a.slice(0, rnd).toString() + ']';
+        },
+        [λ.arrayOf(λ.AnyVal)]
     )
 };
