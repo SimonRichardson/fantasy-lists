@@ -38,7 +38,7 @@ function init(a) {
 }
 
 function left(a) {
-    return a.cata({
+    return a.y.cata({
         Cons: function(x, y) {
             var left = List.of(x),
                 right = y();
@@ -49,7 +49,7 @@ function left(a) {
 }
 
 function right(a) {
-    return a.cata({
+    return a.x.cata({
         Cons: function(x, y) {
             var left = y(),
                 right = List.of(x);
@@ -57,6 +57,14 @@ function right(a) {
         },
         Nil: Zipper.empty
     });
+}
+
+function moveLeft(a) {
+    return a.left();
+}
+
+function moveRight(a) {
+    return a.right();
 }
 
 function same(a, b) {
@@ -84,6 +92,10 @@ function equals(a, b) {
     });
 }
 
+function expected(a, b) {
+    return a < 1 ? Option.None : Option.of(b);
+}
+
 exports.zipper = {
 
     // Manual tests
@@ -108,27 +120,25 @@ exports.zipper = {
             );
         },
         [λ.arrayOf(λ.AnyVal)]
-    ),
+    ),*/
     'testing zipper left should return correct value': λ.check(
         function(a) {
             var list = List.fromArray(a),
                 zipper = Zipper.of(list);
             return equals(
                 zipper.left(),
-                a.length < 1 ? Option.None : Option.of(Zipper.of(list))
+                expected(a.length, Zipper.of(list))
             );
         },
         [λ.arrayOf(λ.AnyVal)]
     ),
-    'testing zipper right then left should return correct value': λ.check(
+    'testing zipper left multiple times should return correct value': λ.check(
         function(a) {
             var list = List.fromArray(a),
                 zipper = Zipper.of(list);
             return equals(
-                zipper.right().chain(function(a) {
-                    return a.left();
-                }),
-                zipper.left()
+                zipper.left().chain(moveLeft).chain(moveLeft),
+                expected(a.length, Zipper.of(list))
             );
         },
         [λ.arrayOf(λ.AnyVal)]
@@ -139,7 +149,40 @@ exports.zipper = {
                 zipper = Zipper.of(list);
             return equals(
                 zipper.right(),
-                a.length < 1 ? Option.None : Option.of(right(list))
+                expected(a.length, right(Zipper.of(list)))
+            );
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+    'testing zipper right multiple times should return correct value': λ.check(
+        function(a) {
+            var list = List.fromArray(a),
+                zipper = Zipper.of(list);
+            return equals(
+                zipper.right().chain(moveRight).chain(moveRight),
+                expected(a.length, right(right(right(Zipper.of(list)))))
+            );
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+    'testing zipper right then left should return correct value': λ.check(
+        function(a) {
+            var list = List.fromArray(a),
+                zipper = Zipper.of(list);
+            return equals(
+                zipper.right().chain(moveLeft),
+                zipper.left()
+            );
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+    'testing zipper right multiple times then left should return correct value': λ.check(
+        function(a) {
+            var list = List.fromArray(a),
+                zipper = Zipper.of(list);
+            return equals(
+                zipper.right().chain(moveRight).chain(moveRight).chain(moveLeft),
+                expected(a.length, left(right(right(right(Zipper.of(list))))))
             );
         },
         [λ.arrayOf(λ.AnyVal)]
