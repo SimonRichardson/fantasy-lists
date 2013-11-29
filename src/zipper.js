@@ -50,9 +50,20 @@ Zipper.prototype.right = function() {
     });
 };
 Zipper.prototype.first = function() {
-    return this.left().chain(function(x) {
-        return x.first();
-    }).orElse(Option.of(this));
+    var scope = this;
+    return scope.y.cata({
+        Cons: function() {
+            return scope.left().chain(function(x) {
+                return x.first();
+            }).orElse(Option.of(scope));
+        },
+        Nil: function() {
+            return scope.x.cata({
+                Cons: constant(Option.of(scope)),
+                Nil: constant(Option.None)
+            });
+        }
+    });
 };
 Zipper.prototype.last = function() {
     var scope = this;

@@ -67,6 +67,14 @@ function moveRight(a) {
     return a.right();
 }
 
+function moveToFirst(a) {
+    return a.first();
+}
+
+function moveToLast(a) {
+    return a.last();
+}
+
 function same(a, b) {
     return a.zipWith(b).fold(true, function(a, b) {
         return a && b._1 === b._2;
@@ -96,31 +104,14 @@ function expected(a, b) {
     return a < 1 ? Option.None : Option.of(b);
 }
 
+function chains(n, a, f) {
+    return n < 1 ? a : chains(n - 1, a.chain(f), f);
+}
+
 exports.zipper = {
 
     // Manual tests
-    /*'testing zipper first on a zipper in first position should return correct value': λ.check(
-        function(a) {
-            var list = List.fromArray(a),
-                zipper = Zipper.of(list);
-            return equals(
-                zipper.first(),
-                a.length < 1 ? Option.None : Option.of(Zipper.of(list))
-            );
-        },
-        [λ.arrayOf(λ.AnyVal)]
-    ),*/
-    'testing zipper last on a zipper in first position should return correct value': λ.check(
-        function(a) {
-            var list = List.fromArray(a),
-                zipper = Zipper.of(list);
-            return equals(
-                zipper.last(),
-                a.length < 1 ? Option.None : Option.of(Zipper(last(list), init(list)))
-            );
-        },
-        [λ.arrayOf(λ.AnyVal)]
-    ),*/
+    // Left & Right
     'testing zipper left should return correct value': λ.check(
         function(a) {
             var list = List.fromArray(a),
@@ -137,7 +128,7 @@ exports.zipper = {
             var list = List.fromArray(a),
                 zipper = Zipper.of(list);
             return equals(
-                zipper.left().chain(moveLeft).chain(moveLeft),
+                chains(3, zipper.left(), moveLeft),
                 expected(a.length, Zipper.of(list))
             );
         },
@@ -159,7 +150,7 @@ exports.zipper = {
             var list = List.fromArray(a),
                 zipper = Zipper.of(list);
             return equals(
-                zipper.right().chain(moveRight).chain(moveRight),
+                chains(2, zipper.right(), moveRight),
                 expected(a.length, right(right(right(Zipper.of(list)))))
             );
         },
@@ -176,13 +167,92 @@ exports.zipper = {
         },
         [λ.arrayOf(λ.AnyVal)]
     ),
-    'testing zipper right multiple times then left should return correct value': λ.check(
+    'testing zipper right multiple times then left': λ.check(
         function(a) {
             var list = List.fromArray(a),
                 zipper = Zipper.of(list);
             return equals(
-                zipper.right().chain(moveRight).chain(moveRight).chain(moveLeft),
+                chains(2, zipper.right(), moveRight).chain(moveLeft),
                 expected(a.length, left(right(right(right(Zipper.of(list))))))
+            );
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+
+    // First & Last
+    'testing zipper first on a zipper in first position': λ.check(
+        function(a) {
+            var list = List.fromArray(a),
+                zipper = Zipper.of(list);
+            return equals(
+                zipper.first(),
+                expected(a.length, Zipper.of(list))
+            );
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+    'testing zipper first multiple times on a zipper in first position': λ.check(
+        function(a) {
+            var list = List.fromArray(a),
+                zipper = Zipper.of(list);
+            return equals(
+                zipper.first().chain(moveToFirst),
+                expected(a.length, Zipper.of(list))
+            );
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+    'testing zipper first and left on a zipper in first position': λ.check(
+        function(a) {
+            var list = List.fromArray(a),
+                zipper = Zipper.of(list);
+            return equals(
+                zipper.first(),
+                zipper.left()
+            );
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+    'testing zipper first after right multiple times on a zipper': λ.check(
+        function(a) {
+            var list = List.fromArray(a),
+                zipper = Zipper.of(list);
+            return equals(
+                chains(4, zipper.right(), moveRight).chain(moveToFirst),
+                expected(a.length, Zipper.of(list))
+            );
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+    'testing zipper last on a zipper in first position': λ.check(
+        function(a) {
+            var list = List.fromArray(a),
+                zipper = Zipper.of(list);
+            return equals(
+                zipper.last(),
+                expected(a.length, Zipper(last(list), init(list)))
+            );
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+    'testing zipper last on a zipper in last position': λ.check(
+        function(a) {
+            var list = List.fromArray(a),
+                zipper = Zipper.of(list);
+            return equals(
+                chains(3, zipper.last(), moveToLast),
+                expected(a.length, Zipper(last(list), init(list)))
+            );
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+    'testing zipper last then left on a zipper in last position': λ.check(
+        function(a) {
+            var list = List.fromArray(a),
+                zipper = Zipper.of(list);
+            return equals(
+                chains(3, zipper.last().chain(moveLeft), moveToLast),
+                expected(a.length, Zipper(last(list), init(list)))
             );
         },
         [λ.arrayOf(λ.AnyVal)]
