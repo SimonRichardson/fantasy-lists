@@ -19,7 +19,9 @@
   "dependencies": {
     "bounces": "0.0.x",
     "daggy": "0.0.x",
-    "fantasy-combinators": "0.0.x"
+    "fantasy-combinators": "0.0.x",
+    "fantasy-options": "0.0.x",
+    "fantasy-tuples": "0.0.x"
   },
   "devDependencies": {
     "grunt-cli": "0.1.9",

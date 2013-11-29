@@ -1,4 +1,8 @@
-var List = require('./src/list');
+var List = require('./src/list'),
+    Zipper = require('./src/zipper');
 
 if (typeof module != 'undefined')
-    module.exports = List;
+    module.exports = {
+        List: List,
+        Zipper: Zipper
+    };

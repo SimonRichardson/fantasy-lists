@@ -1,9 +1,11 @@
 var daggy = require('daggy'),
     combinators = require('fantasy-combinators'),
+    tuples = require('fantasy-tuples'),
 
     constant = combinators.constant,
     identity = combinators.identity,
 
+    Tuple2 = tuples.Tuple2,
     List = daggy.taggedSum({
         Cons: ['head', 'tail'],
         Nil: []
@@ -18,7 +20,7 @@ List.empty = function() {
 };
 List.from = function(a, b) {
     var rec = function(x) {
-        if (x < b) {
+        if (x <= b) {
             var next = x + 1;
             return List.Cons(x, function() {
                 return rec(next);
@@ -82,6 +84,9 @@ List.prototype.map = function(f) {
         return List.of(f(x));
     });
 };
+List.prototype.prepend = function(x) {
+    return x.concat(this);
+};
 List.prototype.reverse = function() {
     return this.fold(List.Nil, function(a, b) {
         return List.Cons(b, constant(a));
@@ -101,6 +106,29 @@ List.prototype.take = function(x) {
         });
     };
     return rec(x, this);
+};
+List.prototype.zipWith = function(x) {
+    var rec = function(a, b, c) {
+        return b.cata({
+            Nil: constant(a),
+            Cons: function(bHead, bTail) {
+                return c.cata({
+                    Nil: constant(a),
+                    Cons: function(cHead, cTail) {
+                        return rec(
+                            List.Cons(
+                                Tuple2(bHead, cHead),
+                                constant(a)
+                            ),
+                            bTail(),
+                            cTail()
+                        );
+                    }
+                });
+            }
+        });
+    };
+    return rec(List.Nil, this, x);
 };
 
 // Export

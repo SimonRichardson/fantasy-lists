@@ -8,7 +8,7 @@ var λ = require('fantasy-check/src/adapters/nodeunit'),
     combinators = require('fantasy-combinators'),
 
     Identity = require('fantasy-identities'),
-    List = require('../fantasy-lists'),
+    List = require('../fantasy-lists').List,
 
     identity = combinators.identity,
     randomRange = helpers.randomRange;
@@ -69,5 +69,34 @@ exports.list = {
             return show(x.take(rnd)) === '[' + a.slice(0, rnd).toString() + ']';
         },
         [λ.arrayOf(λ.AnyVal)]
+    ),
+    'when using reverse should invert list to correct order': λ.check(
+        function(a) {
+            var x = List.fromArray(a),
+                y = a.slice().reverse();
+
+            return show(x.reverse()) === '[' + y.toString() + ']';
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+    'when using reverse after concat should invert list to correct order': λ.check(
+        function(a, b) {
+            var x = List.fromArray(a),
+                y = List.fromArray(b),
+                z = a.concat(b).slice().reverse();
+
+            return show(x.concat(y).reverse()) === '[' + z.toString() + ']';
+        },
+        [λ.arrayOf(λ.AnyVal), λ.arrayOf(λ.AnyVal)]
+    ),
+    'when using reverse before concat should invert list to correct order': λ.check(
+        function(a, b) {
+            var x = List.fromArray(a),
+                y = List.fromArray(b),
+                z = a.slice().reverse().concat(b);
+
+            return show(x.reverse().concat(y)) === '[' + z.toString() + ']';
+        },
+        [λ.arrayOf(λ.AnyVal), λ.arrayOf(λ.AnyVal)]
     )
 };
