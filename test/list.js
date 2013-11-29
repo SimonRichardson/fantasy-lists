@@ -98,5 +98,11 @@ exports.list = {
             return show(x.reverse().concat(y)) === '[' + z.toString() + ']';
         },
         [λ.arrayOf(λ.AnyVal), λ.arrayOf(λ.AnyVal)]
-    )
+    ),
+    'when testing from with large number then take is correct size': function(test) {
+        var a = List.from(0, Math.pow(2, 53)),
+            b = List.fromArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        test.equals(show(a.take(10)), show(b));
+        test.done();
+    }
 };
