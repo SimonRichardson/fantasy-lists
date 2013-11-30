@@ -17,64 +17,39 @@ Zipper.prototype.left = function() {
     var scope = this;
     return scope.y.cata({
         Cons: function(a, b) {
-            var left = scope.x.prepend(List.of(a)),
-                right = b();
-            return Option.of(Zipper(left, right));
+            return Option.of(
+                Zipper(
+                    scope.x.prepend(List.of(a)),
+                    b()
+                )
+            );
         },
-        Nil: function() {
-            return scope.x.cata({
-                Cons: function() {
-                    return Option.of(scope);
-                },
-                Nil: constant(Option.None)
-            });
-        }
+        Nil: constant(Option.None)
     });
 };
 Zipper.prototype.right = function() {
     var scope = this;
     return scope.x.cata({
         Cons: function(a, b) {
-            var left = b(),
-                right = List.of(a).concat(scope.y);
-            return Option.of(Zipper(left, right));
-        },
-        Nil: function() {
-            return scope.y.cata({
-                Cons: function() {
-                    return Option.of(scope);
-                },
-                Nil: constant(Option.None)
-            });
-        }
-    });
-};
-Zipper.prototype.first = function() {
-    var scope = this;
-    return scope.y.cata({
-        Cons: function() {
-            return scope.left().chain(function(x) {
-                return x.first();
-            }).orElse(Option.of(scope));
-        },
-        Nil: function() {
-            return scope.x.cata({
-                Cons: constant(Option.of(scope)),
-                Nil: constant(Option.None)
-            });
-        }
-    });
-};
-Zipper.prototype.last = function() {
-    var scope = this;
-    return scope.x.cata({
-        Cons: function() {
-            return scope.right().chain(function(x) {
-                return x.last();
-            }).orElse(Option.of(scope));
+            return Option.of(
+                Zipper(
+                    b(),
+                    List.of(a).concat(scope.y)
+                )
+            );
         },
         Nil: constant(Option.None)
     });
+};
+Zipper.prototype.first = function() {
+    return this.left().chain(function(x) {
+        return x.first();
+    }).orElse(Option.of(this));
+};
+Zipper.prototype.last = function() {
+    return this.right().chain(function(x) {
+        return x.last();
+    }).orElse(Option.of(this));
 };
 
 // Export

@@ -26,7 +26,6 @@ function run(a) {
 }
 
 exports.list = {
-
     // Applicative Functor tests
     'All (Applicative)': applicative.laws(λ)(List, run),
     'Identity (Applicative)': applicative.identity(λ)(List, run),
