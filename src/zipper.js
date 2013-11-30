@@ -19,7 +19,7 @@ Zipper.prototype.left = function() {
         Cons: function(a, b) {
             return Option.of(
                 Zipper(
-                    scope.x.prepend(List.of(a)),
+                    List.of(a).concat(scope.x),
                     b()
                 )
             );
@@ -52,6 +52,25 @@ Zipper.prototype.last = function() {
     }).orElse(Option.of(this));
 };
 
+Zipper.prototype.append = function(a) {
+    return Zipper(this.x.concat(a), this.y);
+};
+Zipper.prototype.prepend = function(a) {
+    return Zipper(a.concat(this.x), this.y);
+};
+
+Zipper.prototype.asList = function() {
+    var scope = this;
+    return scope.y.cata({
+        Cons: function(a, b) {
+            return Zipper(
+                List.of(a).concat(scope.x),
+                b()
+            ).asList();
+        },
+        Nil: constant(scope.x)
+    });
+};
 // Export
 if(typeof module != 'undefined')
     module.exports = Zipper;

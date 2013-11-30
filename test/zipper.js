@@ -231,5 +231,33 @@ exports.zipper = {
             );
         },
         [λ.arrayOf(λ.AnyVal)]
+    ),
+    'testing asList on a zipper in first position': λ.check(
+        function(a) {
+            var list = List.fromArray(a),
+                zipper = Zipper.of(list);
+            return same(
+                zipper.asList(),
+                list
+            );
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+    'testing asList on a zipper in last position': λ.check(
+        function(a) {
+            var list = List.fromArray(a),
+                zipper = Zipper.of(list),
+                possible = zipper.last();
+            return possible.cata({
+                Some: function(x) {
+                    return same(
+                        x.asList(),
+                        list
+                    );
+                },
+                None: constant(true)
+            });
+        },
+        [λ.arrayOf(λ.AnyVal)]
     )
 };

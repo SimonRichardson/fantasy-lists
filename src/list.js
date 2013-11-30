@@ -84,9 +84,6 @@ List.prototype.map = function(f) {
         return List.of(f(x));
     });
 };
-List.prototype.prepend = function(x) {
-    return x.concat(this);
-};
 List.prototype.reverse = function() {
     return this.fold(List.Nil, function(a, b) {
         return List.Cons(b, constant(a));
