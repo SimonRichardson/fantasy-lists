@@ -92,6 +92,21 @@ List.prototype.reverse = function() {
         return List.Cons(b, constant(a));
     });
 };
+
+// Common
+List.prototype.filter = function(f) {
+    var rec = function(a, b) {
+        return b.cata({
+            Nil: constant(a),
+            Cons: function(x, y) {
+                return f(x) ?
+                    rec(List.Cons(x, constant(a)), y()) :
+                    rec(a, y());
+            }
+        });
+    };
+    return rec(List.Nil, this).reverse();
+};
 List.prototype.take = function(x) {
     var rec = function(n, a) {
         return a.cata({
@@ -128,7 +143,7 @@ List.prototype.zipWith = function(x) {
             }
         });
     };
-    return rec(List.Nil, this, x);
+    return rec(List.Nil, this, x).reverse();
 };
 
 // Export

@@ -6,15 +6,54 @@ var λ = require('fantasy-check/src/adapters/nodeunit'),
 
     helpers = require('fantasy-helpers'),
     combinators = require('fantasy-combinators'),
+    tuples = require('fantasy-tuples'),
 
     Identity = require('fantasy-identities'),
     List = require('../fantasy-lists').List,
 
+    Tuple2 = tuples.Tuple2,
+
     identity = combinators.identity,
     randomRange = helpers.randomRange;
 
+Tuple2.prototype.toString = function() {
+    return '(' + this._1 + ', ' + this._2 + ')';
+};
+
 function concat(a, b) {
-    return a.concat(b);
+    return a.concat(b.toString());
+}
+
+function filter(a, f) {
+    var accum = [],
+        i;
+    for(i = 0; i < a.length; i++) {
+        if (f(a[i]))
+            accum.push(a[i]);
+    }
+    return accum;
+}
+
+function zipWith(a, b) {
+    var accum = [],
+        total = Math.min(a.length, b.length),
+        i;
+    for(i = 0; i < total; i++) {
+        accum.push(Tuple2(a[i], b[i]));
+    }
+    return accum;
+}
+
+function fold(a, v, f) {
+    var i;
+    for(i = 0; i < a.length; i++) {
+        v = f(v, a[i]);
+    }
+    return v;
+}
+
+function isEven(a) {
+    return (a % 2) === 0;
 }
 
 function show(a) {
@@ -103,5 +142,39 @@ exports.list = {
             b = List.fromArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
         test.equals(show(a.take(10)), show(b));
         test.done();
-    }
+    },
+
+    // Common
+    'when testing filter should return correct list': λ.check(
+        function(a) {
+            var x = List.fromArray(a),
+                y = x.filter(isEven),
+                z = filter(a, isEven);
+            return show(y) === '[' + z.toString() + ']';
+        },
+        [λ.arrayOf(Number)]
+    ),
+    'when testing take should return correct list': λ.check(
+        function(a) {
+            var rnd = randomRange(0, a.length),
+                x = List.fromArray(a),
+                y = x.take(rnd),
+                z = a.slice(0, rnd);
+            return show(y) === '[' + z.toString() + ']';
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+    'when testing zipWith should return correct list': λ.check(
+        function(a, b) {
+            var x = List.fromArray(a),
+                y = List.fromArray(b),
+                z = zipWith(a, b),
+                s = function(a, b) {
+                    var c = b.toString();
+                    return a === '' ? c : a + ',' + c;
+                };
+            return show(x.zipWith(y)) === '[' + fold(z, '', s) + ']';
+        },
+        [λ.arrayOf(λ.AnyVal), λ.arrayOf(λ.AnyVal)]
+    )
 };
