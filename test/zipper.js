@@ -1,7 +1,13 @@
 var λ = require('fantasy-check/src/adapters/nodeunit'),
     combinators = require('fantasy-combinators'),
+    applicative = require('fantasy-check/src/laws/applicative'),
+    functor = require('fantasy-check/src/laws/functor'),
+    monad = require('fantasy-check/src/laws/monad'),
+    monoid = require('fantasy-check/src/laws/monoid'),
+
     lists = require('../fantasy-lists'),
     Option = require('fantasy-options'),
+    Identity = require('fantasy-identities'),
     listEquals = require('./common/equality'),
 
     constant = combinators.constant,
@@ -101,6 +107,16 @@ function equals(a, b) {
             });
         }
     });
+}
+
+function run(a) {
+    var concat = function(a, b) {
+            return a.concat(b.toString());
+        },
+        show = function(a) {
+            return '[' + a.fold([], concat).toString() + ']';
+        };
+    return Identity.of(show(a.x) + show(a.y));
 }
 
 exports.zipper = {
@@ -227,18 +243,18 @@ exports.zipper = {
         },
         [λ.arrayOf(λ.AnyVal)]
     ),
-    'testing asList on a zipper in first position': λ.check(
+    'testing toList on a zipper in first position': λ.check(
         function(a) {
             var list = List.fromArray(a),
                 zipper = Zipper.of(list);
             return listEquals(
-                zipper.asList(),
+                zipper.toList(),
                 list
             );
         },
         [λ.arrayOf(λ.AnyVal)]
     ),
-    'testing asList on a zipper in last position': λ.check(
+    'testing toList on a zipper in last position': λ.check(
         function(a) {
             var list = List.fromArray(a),
                 zipper = Zipper.of(list),
@@ -246,7 +262,7 @@ exports.zipper = {
             return possible.cata({
                 Some: function(x) {
                     return listEquals(
-                        x.asList(),
+                        x.toList(),
                         list
                     );
                 },
@@ -255,7 +271,7 @@ exports.zipper = {
         },
         [λ.arrayOf(λ.AnyVal)]
     ),
-    'testing append on a zipper in first position': λ.check(
+    'testing concat on a zipper in first position': λ.check(
         function(a, b) {
             var list = List.fromArray(a),
                 zipper = Zipper.of(list),
@@ -263,7 +279,7 @@ exports.zipper = {
                 y = list.concat(List.of(b));
                 
             return listEquals(
-                x.asList(),
+                x.toList(),
                 y
             );
         },

@@ -7,12 +7,20 @@ var daggy = require('daggy'),
 
     Zipper = daggy.tagged('x', 'y');
 
+// Methods
 Zipper.of = function(x) {
     return Zipper(x, List.Nil);
 };
 Zipper.empty = function() {
     return Zipper(List.Nil, List.Nil);
 };
+
+// Derived
+Zipper.prototype.concat = function(a) {
+    return Zipper(this.x.concat(a.x), this.y.concat(a.y));
+};
+
+// Common
 Zipper.prototype.backwards = function() {
     var scope = this;
     return scope.y.cata({
@@ -52,18 +60,16 @@ Zipper.prototype.last = function() {
     }).orElse(Option.of(this));
 };
 
-Zipper.prototype.concat = function(a) {
-    return Zipper(this.x.concat(a.x), this.y.concat(a.y));
-};
-
-Zipper.prototype.asList = function() {
+// IO
+Zipper.fromList = Zipper.of;
+Zipper.prototype.toList = function() {
     var scope = this;
     return scope.y.cata({
         Cons: function(a, b) {
             return Zipper(
                 List.of(a).concat(scope.x),
                 b()
-            ).asList();
+            ).toList();
         },
         Nil: constant(scope.x)
     });

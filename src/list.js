@@ -18,29 +18,6 @@ List.of = function(x) {
 List.empty = function() {
     return List.Nil;
 };
-List.from = function(a, b) {
-    var rec = function(x) {
-        if (x <= b) {
-            var next = x + 1;
-            return List.Cons(x, function() {
-                return rec(next);
-            });
-        } else return List.Nil;
-    };
-    return rec(a);
-};
-List.fromArray = function(a) {
-    var rec = function(x) {
-        if (x < a.length) {
-            var next = x + 1,
-                head = a.slice(x, next);
-            return List.Cons(head[0], function() {
-                return rec(next);
-            });
-        } else return List.Nil;
-    };
-    return rec(0);
-};
 List.prototype.chain = function(f) {
     return this.fold(
         List.Nil,
@@ -160,6 +137,31 @@ List.prototype.zip = function(x) {
         });
     };
     return rec(List.Nil, this, x);
+};
+
+// IO
+List.from = function(a, b) {
+    var rec = function(x) {
+        if (x <= b) {
+            var next = x + 1;
+            return List.Cons(x, function() {
+                return rec(next);
+            });
+        } else return List.Nil;
+    };
+    return rec(a);
+};
+List.fromArray = function(a) {
+    var rec = function(x) {
+        if (x < a.length) {
+            var next = x + 1,
+                head = a.slice(x, next);
+            return List.Cons(head[0], function() {
+                return rec(next);
+            });
+        } else return List.Nil;
+    };
+    return rec(0);
 };
 
 // Export
