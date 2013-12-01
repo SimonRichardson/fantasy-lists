@@ -13,7 +13,7 @@ Zipper.of = function(x) {
 Zipper.empty = function() {
     return Zipper(List.Nil, List.Nil);
 };
-Zipper.prototype.left = function() {
+Zipper.prototype.backwards = function() {
     var scope = this;
     return scope.y.cata({
         Cons: function(a, b) {
@@ -27,7 +27,7 @@ Zipper.prototype.left = function() {
         Nil: constant(Option.None)
     });
 };
-Zipper.prototype.right = function() {
+Zipper.prototype.forwards = function() {
     var scope = this;
     return scope.x.cata({
         Cons: function(a, b) {
@@ -42,12 +42,12 @@ Zipper.prototype.right = function() {
     });
 };
 Zipper.prototype.first = function() {
-    return this.left().chain(function(x) {
+    return this.backwards().chain(function(x) {
         return x.first();
     }).orElse(Option.of(this));
 };
 Zipper.prototype.last = function() {
-    return this.right().chain(function(x) {
+    return this.forwards().chain(function(x) {
         return x.last();
     }).orElse(Option.of(this));
 };
@@ -57,6 +57,15 @@ Zipper.prototype.append = function(a) {
 };
 Zipper.prototype.prepend = function(a) {
     return Zipper(a.concat(this.x), this.y);
+};
+Zipper.prototype.remove = function() {
+    var scope = this;
+    return this.x.cata({
+        Cons: function(a, b) {
+            return Option.of(Zipper(b(), scope.y));
+        },
+        Nil: constant(Option.None)
+    });
 };
 
 Zipper.prototype.asList = function() {
@@ -71,6 +80,7 @@ Zipper.prototype.asList = function() {
         Nil: constant(scope.x)
     });
 };
+
 // Export
 if(typeof module != 'undefined')
     module.exports = Zipper;

@@ -37,7 +37,7 @@ function init(a) {
     });
 }
 
-function left(a) {
+function backwards(a) {
     return a.y.cata({
         Cons: function(x, y) {
             var left = List.of(x),
@@ -48,7 +48,7 @@ function left(a) {
     });
 }
 
-function right(a) {
+function forwards(a) {
     return a.x.cata({
         Cons: function(x, y) {
             var left = y(),
@@ -59,12 +59,12 @@ function right(a) {
     });
 }
 
-function moveLeft(a) {
-    return a.left();
+function moveBackwards(a) {
+    return a.backwards();
 }
 
-function moveRight(a) {
-    return a.right();
+function moveForwards(a) {
+    return a.forwards();
 }
 
 function moveToFirst(a) {
@@ -117,7 +117,7 @@ exports.zipper = {
             var list = List.fromArray(a),
                 zipper = Zipper.of(list);
             return equals(
-                zipper.left(),
+                zipper.backwards(),
                 Option.None
             );
         },
@@ -128,8 +128,8 @@ exports.zipper = {
             var list = List.fromArray(a),
                 zipper = Zipper.of(list);
             return equals(
-                zipper.right(),
-                expected(a, 1, right(Zipper.of(list)))
+                zipper.forwards(),
+                expected(a, 1, forwards(Zipper.of(list)))
             );
         },
         [λ.arrayOf(λ.AnyVal)]
@@ -139,8 +139,8 @@ exports.zipper = {
             var list = List.fromArray(a),
                 zipper = Zipper.of(list);
             return equals(
-                chains(2, zipper.right(), moveRight),
-                expected(a, 3, right(right(right(Zipper.of(list)))))
+                chains(2, zipper.forwards(), moveForwards),
+                expected(a, 3, forwards(forwards(forwards(Zipper.of(list)))))
             );
         },
         [λ.arrayOf(λ.AnyVal)]
@@ -150,7 +150,7 @@ exports.zipper = {
             var list = List.fromArray(a),
                 zipper = Zipper.of(list);
             return equals(
-                zipper.right().chain(moveLeft),
+                zipper.forwards().chain(moveBackwards),
                 expected(a, 0, Zipper.of(list))
             );
         },
@@ -162,7 +162,7 @@ exports.zipper = {
                 zipper = Zipper.of(list);
 
             return equals(
-                chains(a.length - 1, zipper.right(), moveRight).chain(moveLeft),
+                chains(a.length - 1, zipper.forwards(), moveForwards).chain(moveBackwards),
                 expected(
                     a,
                     0,
@@ -193,7 +193,7 @@ exports.zipper = {
             var list = List.fromArray(a),
                 zipper = Zipper.of(list);
             return equals(
-                zipper.right().chain(moveToFirst),
+                zipper.forwards().chain(moveToFirst),
                 expected(a, 1, Zipper.of(list))
             );
         },
@@ -226,7 +226,7 @@ exports.zipper = {
             var list = List.fromArray(a),
                 zipper = Zipper.of(list);
             return equals(
-                zipper.last().chain(moveLeft),
+                zipper.last().chain(moveBackwards),
                 expected(a, a.length - 2, Zipper(last(list), init(list)))
             );
         },
