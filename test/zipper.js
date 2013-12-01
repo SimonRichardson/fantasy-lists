@@ -2,6 +2,7 @@ var λ = require('fantasy-check/src/adapters/nodeunit'),
     combinators = require('fantasy-combinators'),
     lists = require('../fantasy-lists'),
     Option = require('fantasy-options'),
+    listEquals = require('./common/equality'),
 
     constant = combinators.constant,
 
@@ -75,12 +76,6 @@ function moveToLast(a) {
     return a.last();
 }
 
-function same(a, b) {
-    return a.zip(b).fold(true, function(a, b) {
-        return a && b._1 === b._2;
-    });
-}
-
 function expected(a, c, b) {
     return a.length < 1 || c > a.length ? Option.None : Option.of(b);
 }
@@ -94,7 +89,7 @@ function equals(a, b) {
         Some: function(zip0) {
             return b.cata({
                 Some: function(zip1) {
-                    return same(zip0.x, zip1.x) && same(zip0.y, zip1.y);
+                    return listEquals(zip0.x, zip1.x) && listEquals(zip0.y, zip1.y);
                 },
                 None: constant(false)
             });
@@ -236,7 +231,7 @@ exports.zipper = {
         function(a) {
             var list = List.fromArray(a),
                 zipper = Zipper.of(list);
-            return same(
+            return listEquals(
                 zipper.asList(),
                 list
             );
@@ -250,7 +245,7 @@ exports.zipper = {
                 possible = zipper.last();
             return possible.cata({
                 Some: function(x) {
-                    return same(
+                    return listEquals(
                         x.asList(),
                         list
                     );
