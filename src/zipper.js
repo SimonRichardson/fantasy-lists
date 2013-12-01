@@ -52,20 +52,8 @@ Zipper.prototype.last = function() {
     }).orElse(Option.of(this));
 };
 
-Zipper.prototype.append = function(a) {
-    return Zipper(this.x.concat(a), this.y);
-};
-Zipper.prototype.prepend = function(a) {
-    return Zipper(a.concat(this.x), this.y);
-};
-Zipper.prototype.remove = function() {
-    var scope = this;
-    return this.x.cata({
-        Cons: function(a, b) {
-            return Option.of(Zipper(b(), scope.y));
-        },
-        Nil: constant(Option.None)
-    });
+Zipper.prototype.concat = function(a) {
+    return Zipper(this.x.concat(a.x), this.y.concat(a.y));
 };
 
 Zipper.prototype.asList = function() {

@@ -254,5 +254,19 @@ exports.zipper = {
             });
         },
         [λ.arrayOf(λ.AnyVal)]
+    ),
+    'testing append on a zipper in first position': λ.check(
+        function(a, b) {
+            var list = List.fromArray(a),
+                zipper = Zipper.of(list),
+                x = zipper.concat(Zipper.of(List.of(b))),
+                y = list.concat(List.of(b));
+                
+            return listEquals(
+                x.asList(),
+                y
+            );
+        },
+        [λ.arrayOf(λ.AnyVal), λ.AnyVal]
     )
 };
