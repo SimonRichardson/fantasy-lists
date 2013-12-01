@@ -7,6 +7,8 @@ var λ = require('fantasy-check/src/adapters/nodeunit'),
     helpers = require('fantasy-helpers'),
     combinators = require('fantasy-combinators'),
     tuples = require('fantasy-tuples'),
+    array = require('./common/array'),
+    equals = require('./common/equality'),
 
     Identity = require('fantasy-identities'),
     List = require('../fantasy-lists').List,
@@ -16,51 +18,17 @@ var λ = require('fantasy-check/src/adapters/nodeunit'),
     identity = combinators.identity,
     randomRange = helpers.randomRange;
 
-Tuple2.prototype.toString = function() {
-    return '(' + this._1 + ', ' + this._2 + ')';
-};
-
-function concat(a, b) {
-    return a.concat(b.toString());
-}
-
-function filter(a, f) {
-    var accum = [],
-        i;
-    for(i = 0; i < a.length; i++) {
-        if (f(a[i]))
-            accum.push(a[i]);
-    }
-    return accum;
-}
-
-function zipWith(a, b) {
-    var accum = [],
-        total = Math.min(a.length, b.length),
-        i;
-    for(i = 0; i < total; i++) {
-        accum.push(Tuple2(a[i], b[i]));
-    }
-    return accum;
-}
-
-function fold(a, v, f) {
-    var i;
-    for(i = 0; i < a.length; i++) {
-        v = f(v, a[i]);
-    }
-    return v;
-}
-
 function isEven(a) {
     return (a % 2) === 0;
 }
 
-function show(a) {
-    return '[' + a.fold([], concat).toString() + ']';
-}
-
 function run(a) {
+    var concat = function(a, b) {
+            return a.concat(b.toString());
+        },
+        show = function(a) {
+            return '[' + a.fold([], concat).toString() + ']';
+        };
     return Identity.of(show(a));
 }
 
@@ -95,7 +63,7 @@ exports.list = {
             var x = List.fromArray(a),
                 y = List.fromArray(b);
 
-            return show(x.concat(y)) === '[' + a.concat(b).toString() + ']';
+            return equals(x.concat(y), List.fromArray(a.concat(b)));
         },
         [λ.arrayOf(λ.AnyVal), λ.arrayOf(λ.AnyVal)]
     ),
@@ -104,7 +72,7 @@ exports.list = {
             var x = List.fromArray(a),
                 len = a.length,
                 rnd = Math.floor(randomRange(0, len > 1 ? len : 0));
-            return show(x.take(rnd)) === '[' + a.slice(0, rnd).toString() + ']';
+            return equals(x.take(rnd), List.fromArray(a.slice(0, rnd)));
         },
         [λ.arrayOf(λ.AnyVal)]
     ),
@@ -113,7 +81,7 @@ exports.list = {
             var x = List.fromArray(a),
                 y = a.slice().reverse();
 
-            return show(x.reverse()) === '[' + y.toString() + ']';
+            return equals(x.reverse(), List.fromArray(y));
         },
         [λ.arrayOf(λ.AnyVal)]
     ),
@@ -123,7 +91,7 @@ exports.list = {
                 y = List.fromArray(b),
                 z = a.concat(b).slice().reverse();
 
-            return show(x.concat(y).reverse()) === '[' + z.toString() + ']';
+            return equals(x.concat(y).reverse(), List.fromArray(z));
         },
         [λ.arrayOf(λ.AnyVal), λ.arrayOf(λ.AnyVal)]
     ),
@@ -133,14 +101,14 @@ exports.list = {
                 y = List.fromArray(b),
                 z = a.slice().reverse().concat(b);
 
-            return show(x.reverse().concat(y)) === '[' + z.toString() + ']';
+            return equals(x.reverse().concat(y), List.fromArray(z));
         },
         [λ.arrayOf(λ.AnyVal), λ.arrayOf(λ.AnyVal)]
     ),
     'when testing from with large number then take is correct size': function(test) {
         var a = List.from(0, Math.pow(2, 53)),
             b = List.fromArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-        test.equals(show(a.take(10)), show(b));
+        test.ok(equals(a.take(10), List.fromArray(b)));
         test.done();
     },
 
@@ -149,8 +117,18 @@ exports.list = {
         function(a) {
             var x = List.fromArray(a),
                 y = x.filter(isEven),
-                z = filter(a, isEven);
-            return show(y) === '[' + z.toString() + ']';
+                z = array.filter(a, isEven).reverse();
+            return equals(y, List.fromArray(z));
+        },
+        [λ.arrayOf(Number)]
+    ),
+    'when testing partition should return correct list': λ.check(
+        function(a) {
+            var x = List.fromArray(a),
+                y = x.partition(isEven),
+                z = array.partition(a, isEven);
+            return equals(y._1, List.fromArray(z._1)) &&
+                    equals(y._1, List.fromArray(z._1));
         },
         [λ.arrayOf(Number)]
     ),
@@ -160,20 +138,21 @@ exports.list = {
                 x = List.fromArray(a),
                 y = x.take(rnd),
                 z = a.slice(0, rnd);
-            return show(y) === '[' + z.toString() + ']';
+            return equals(y, List.fromArray(z));
         },
         [λ.arrayOf(λ.AnyVal)]
     ),
-    'when testing zipWith should return correct list': λ.check(
+    'when testing zip should return correct list': λ.check(
         function(a, b) {
             var x = List.fromArray(a),
                 y = List.fromArray(b),
-                z = zipWith(a, b),
-                s = function(a, b) {
-                    var c = b.toString();
-                    return a === '' ? c : a + ',' + c;
+                z = x.zip(y),
+                zz = array.zip(a, b);
+            return equals(z, List.fromArray(zz), function(a) {
+                return function(b) {
+                    return array.equals(a, b);
                 };
-            return show(x.zipWith(y)) === '[' + fold(z, '', s) + ']';
+            });
         },
         [λ.arrayOf(λ.AnyVal), λ.arrayOf(λ.AnyVal)]
     )

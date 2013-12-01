@@ -76,7 +76,7 @@ function moveToLast(a) {
 }
 
 function same(a, b) {
-    return a.zipWith(b).fold(true, function(a, b) {
+    return a.zip(b).fold(true, function(a, b) {
         return a && b._1 === b._2;
     });
 }

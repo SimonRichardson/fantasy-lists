@@ -102,7 +102,26 @@ List.prototype.filter = function(f) {
             }
         });
     };
-    return rec(List.Nil, this).reverse();
+    return rec(List.Nil, this);
+};
+List.prototype.partition = function(f) {
+    var rec = function(a, b) {
+        return b.cata({
+            Nil: constant(a),
+            Cons: function(x, y) {
+                return f(x) ?
+                    rec(Tuple2(a._1.concat(List.of(x)), a._2), y()) :
+                    rec(Tuple2(a._1, a._2.concat(List.of(x))), y());
+            }
+        });
+    };
+    return rec(
+            Tuple2(
+                List.Nil,
+                List.Nil
+            ),
+            this
+        );
 };
 List.prototype.take = function(x) {
     var rec = function(n, a) {
@@ -119,7 +138,7 @@ List.prototype.take = function(x) {
     };
     return rec(x, this);
 };
-List.prototype.zipWith = function(x) {
+List.prototype.zip = function(x) {
     var rec = function(a, b, c) {
         return b.cata({
             Nil: constant(a),
@@ -140,7 +159,7 @@ List.prototype.zipWith = function(x) {
             }
         });
     };
-    return rec(List.Nil, this, x).reverse();
+    return rec(List.Nil, this, x);
 };
 
 // Export
