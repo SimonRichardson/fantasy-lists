@@ -51,5 +51,5 @@ if (typeof module != 'undefined')
         partition: partition,
         zip: zip,
         fold: fold,
-        equals: equals
+        arrayEquals: equals
     };

@@ -1,4 +1,4 @@
-var λ = require('fantasy-check/src/adapters/nodeunit'),
+var λ = require('./lib/test'),
     applicative = require('fantasy-check/src/laws/applicative'),
     functor = require('fantasy-check/src/laws/functor'),
     monad = require('fantasy-check/src/laws/monad'),
@@ -7,13 +7,11 @@ var λ = require('fantasy-check/src/adapters/nodeunit'),
     helpers = require('fantasy-helpers'),
     combinators = require('fantasy-combinators'),
     tuples = require('fantasy-tuples'),
-    array = require('./common/array'),
-    equals = require('./common/equality'),
+    lists = require('../fantasy-lists'),
 
     Identity = require('fantasy-identities'),
-    List = require('../fantasy-lists').List,
-
     Tuple2 = tuples.Tuple2,
+    List = lists.List,
 
     identity = combinators.identity,
     randomRange = helpers.randomRange;
@@ -64,7 +62,7 @@ exports.list = {
             var x = List.fromArray(a),
                 y = List.fromArray(b);
 
-            return equals(x.concat(y), List.fromArray(a.concat(b)));
+            return λ.equals(x.concat(y), List.fromArray(a.concat(b)));
         },
         [λ.arrayOf(λ.AnyVal), λ.arrayOf(λ.AnyVal)]
     ),
@@ -73,7 +71,7 @@ exports.list = {
             var x = List.fromArray(a),
                 len = a.length,
                 rnd = Math.floor(randomRange(0, len > 1 ? len : 0));
-            return equals(x.take(rnd), List.fromArray(a.slice(0, rnd)));
+            return λ.equals(x.take(rnd), List.fromArray(a.slice(0, rnd)));
         },
         [λ.arrayOf(λ.AnyVal)]
     ),
@@ -82,7 +80,7 @@ exports.list = {
             var x = List.fromArray(a),
                 y = a.slice().reverse();
 
-            return equals(x.reverse(), List.fromArray(y));
+            return λ.equals(x.reverse(), List.fromArray(y));
         },
         [λ.arrayOf(λ.AnyVal)]
     ),
@@ -92,7 +90,7 @@ exports.list = {
                 y = List.fromArray(b),
                 z = a.concat(b).slice().reverse();
 
-            return equals(x.concat(y).reverse(), List.fromArray(z));
+            return λ.equals(x.concat(y).reverse(), List.fromArray(z));
         },
         [λ.arrayOf(λ.AnyVal), λ.arrayOf(λ.AnyVal)]
     ),
@@ -102,14 +100,14 @@ exports.list = {
                 y = List.fromArray(b),
                 z = a.slice().reverse().concat(b);
 
-            return equals(x.reverse().concat(y), List.fromArray(z));
+            return λ.equals(x.reverse().concat(y), List.fromArray(z));
         },
         [λ.arrayOf(λ.AnyVal), λ.arrayOf(λ.AnyVal)]
     ),
     'when testing from with large number then take is correct size': function(test) {
         var a = List.from(0, Math.pow(2, 53)),
             b = List.fromArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-        test.ok(equals(a.take(10), List.fromArray(b)));
+        test.ok(λ.equals(a.take(10), List.fromArray(b)));
         test.done();
     },
 
@@ -118,8 +116,8 @@ exports.list = {
         function(a) {
             var x = List.fromArray(a),
                 y = x.filter(isEven),
-                z = array.filter(a, isEven).reverse();
-            return equals(y, List.fromArray(z));
+                z = λ.filter(a, isEven).reverse();
+            return λ.equals(y, List.fromArray(z));
         },
         [λ.arrayOf(Number)]
     ),
@@ -127,9 +125,9 @@ exports.list = {
         function(a) {
             var x = List.fromArray(a),
                 y = x.partition(isEven),
-                z = array.partition(a, isEven);
-            return equals(y._1, List.fromArray(z._1)) &&
-                    equals(y._1, List.fromArray(z._1));
+                z = λ.partition(a, isEven);
+            return λ.equals(y._1, List.fromArray(z._1)) &&
+                    λ.equals(y._1, List.fromArray(z._1));
         },
         [λ.arrayOf(Number)]
     ),
@@ -139,7 +137,7 @@ exports.list = {
                 x = List.fromArray(a),
                 y = x.take(rnd),
                 z = a.slice(0, rnd);
-            return equals(y, List.fromArray(z));
+            return λ.equals(y, List.fromArray(z));
         },
         [λ.arrayOf(λ.AnyVal)]
     ),
@@ -148,10 +146,10 @@ exports.list = {
             var x = List.fromArray(a),
                 y = List.fromArray(b),
                 z = x.zip(y),
-                zz = array.zip(a, b);
-            return equals(z, List.fromArray(zz), function(a) {
+                zz = λ.zip(a, b);
+            return λ.equals(z, List.fromArray(zz), function(a) {
                 return function(b) {
-                    return array.equals(a, b);
+                    return λ.arrayEquals(a, b);
                 };
             });
         },
