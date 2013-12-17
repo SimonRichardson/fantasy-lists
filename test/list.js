@@ -13,6 +13,7 @@ var λ = require('./lib/test'),
     Tuple2 = tuples.Tuple2,
     List = lists.List,
 
+    constant = combinators.constant,
     identity = combinators.identity,
     randomRange = helpers.randomRange;
 
@@ -118,6 +119,63 @@ exports.list = {
                 y = x.filter(isEven),
                 z = λ.filter(a, isEven).reverse();
             return λ.equals(y, List.fromArray(z));
+        },
+        [λ.arrayOf(Number)]
+    ),
+    'when testing first should return correct list': λ.check(
+        function(a) {
+            var x = List.fromArray(a),
+                y = x.first(),
+                z = λ.first(a);
+            return y.cata({
+                Some: function(a) {
+                    return z.cata({
+                        Some: function(b) {
+                            return a === b;
+                        },
+                        None: constant(false)
+                    });
+                },
+                None: function() {
+                    return z.cata({
+                        Some: constant(false),
+                        None: constant(true)
+                    });
+                }
+            });
+        },
+        [λ.arrayOf(Number)]
+    ),
+    'when testing init should return correct list': λ.check(
+        function(a) {
+            var x = List.fromArray(a),
+                y = x.init(),
+                z = λ.init(a);
+            return λ.equals(y, List.fromArray(z));
+        },
+        [λ.arrayOf(Number)]
+    ),
+    'when testing last should return correct list': λ.check(
+        function(a) {
+            var x = List.fromArray(a),
+                y = x.last(),
+                z = λ.last(a);
+            return y.cata({
+                Some: function(a) {
+                    return z.cata({
+                        Some: function(b) {
+                            return a === b;
+                        },
+                        None: constant(false)
+                    });
+                },
+                None: function() {
+                    return z.cata({
+                        Some: constant(false),
+                        None: constant(true)
+                    });
+                }
+            });
         },
         [λ.arrayOf(Number)]
     ),

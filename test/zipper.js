@@ -1,9 +1,5 @@
 var λ = require('./lib/test'),
     combinators = require('fantasy-combinators'),
-    applicative = require('fantasy-check/src/laws/applicative'),
-    functor = require('fantasy-check/src/laws/functor'),
-    monad = require('fantasy-check/src/laws/monad'),
-    monoid = require('fantasy-check/src/laws/monoid'),
 
     lists = require('../fantasy-lists'),
     Option = require('fantasy-options'),
@@ -207,7 +203,7 @@ exports.zipper = {
                 expected(
                     a,
                     a.length - 2,
-                    Zipper(λ.last(list), λ.init(list))
+                    Zipper(list.last().fold(List.of, List.empty), list.reverse().init())
                 )
             );
         },

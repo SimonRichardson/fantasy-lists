@@ -1,4 +1,5 @@
 var tuples = require('fantasy-tuples'),
+    Option = require('fantasy-options'),
     Tuple2 = tuples.Tuple2;
 
 function filter(a, f) {
@@ -9,6 +10,18 @@ function filter(a, f) {
             accum.push(a[i]);
     }
     return accum;
+}
+
+function first(a) {
+    return a.length < 1 ? Option.None : Option.of(a[0]);
+}
+
+function init(a) {
+    return a.length < 1 ? [] : a.slice(1);
+}
+
+function last(a) {
+    return a.length < 1 ? Option.None : Option.of(a[a.length - 1]);
 }
 
 function partition(a, f) {
@@ -48,6 +61,9 @@ function equals(a, b) {
 if (typeof module != 'undefined')
     module.exports = {
         filter: filter,
+        first: first,
+        init: init,
+        last: last,
         partition: partition,
         zip: zip,
         fold: fold,

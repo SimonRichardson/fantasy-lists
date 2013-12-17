@@ -1,7 +1,6 @@
 var λ = require('fantasy-check/src/adapters/nodeunit'),
     array = require('./array'),
     equals = require('./equality'),
-    list = require('./list'),
     zipper = require('./zipper');
 
 function extend(a, b) {
@@ -16,10 +15,7 @@ function extend(a, b) {
 }
 
 λ = extend(
-        extend(
-            extend(λ, array),
-            list
-        ),
+        extend(λ, array),
         zipper
     )
     .property('equals', equals);

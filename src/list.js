@@ -2,6 +2,8 @@ var daggy = require('daggy'),
     combinators = require('fantasy-combinators'),
     tuples = require('fantasy-tuples'),
 
+    Option = require('fantasy-options'),
+
     constant = combinators.constant,
     identity = combinators.identity,
 
@@ -80,6 +82,29 @@ List.prototype.filter = function(f) {
         });
     };
     return rec(List.Nil, this);
+};
+List.prototype.first = function() {
+    return this.cata({
+        Cons: function(x) {
+            return Option.of(x);
+        },
+        Nil: function() {
+            return Option.None;
+        }
+    });
+};
+List.prototype.init = function() {
+    return this.cata({
+        Cons: function(x, y) {
+            return y();
+        },
+        Nil: List.empty
+    });
+};
+List.prototype.last = function() {
+    return this.fold(Option.None, function(a, b) {
+        return Option.of(b);
+    });
 };
 List.prototype.partition = function(f) {
     var rec = function(a, b) {
