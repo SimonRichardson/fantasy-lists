@@ -3,6 +3,7 @@ var λ = require('./lib/test'),
     functor = require('fantasy-check/src/laws/functor'),
     monad = require('fantasy-check/src/laws/monad'),
     monoid = require('fantasy-check/src/laws/monoid'),
+    semigroup = require('fantasy-check/src/laws/semigroup'),
 
     helpers = require('fantasy-helpers'),
     combinators = require('fantasy-combinators'),
@@ -30,6 +31,9 @@ function run(a) {
         };
     return Identity.of(show(a));
 }
+function runT(a) {
+    return run(a.run.x);
+}
 
 exports.list = {
 
@@ -56,6 +60,10 @@ exports.list = {
     'leftIdentity (Monoid)': monoid.leftIdentity(λ)(List, run),
     'rightIdentity (Monoid)': monoid.rightIdentity(λ)(List, run),
     'associativity (Monoid)': monoid.associativity(λ)(List, run),
+
+    // Semigroup tests
+    'All (Semigroup)': semigroup.laws(λ)(List.of, run),
+    'associativity (Semigroup)': semigroup.associativity(λ)(List.of, run),
 
     // Manual tests
     'when using concat should concat in correct order': λ.check(
@@ -206,6 +214,110 @@ exports.list = {
                 z = x.zip(y),
                 zz = λ.zip(a, b);
             return λ.equals(z, List.fromArray(zz), function(a) {
+                return function(b) {
+                    return λ.arrayEquals(a, b);
+                };
+            });
+        },
+        [λ.arrayOf(λ.AnyVal), λ.arrayOf(λ.AnyVal)]
+    )
+};
+
+exports.listT = {
+
+    // Applicative Functor tests
+    'All (Applicative)': applicative.laws(λ)(List.ListT(Identity), runT),
+    'Identity (Applicative)': applicative.identity(λ)(List.ListT(Identity), runT),
+    'Composition (Applicative)': applicative.composition(λ)(List.ListT(Identity), runT),
+    'Homomorphism (Applicative)': applicative.homomorphism(λ)(List.ListT(Identity), runT),
+    'Interchange (Applicative)': applicative.interchange(λ)(List.ListT(Identity), runT),
+
+    // Functor tests
+    'All (Functor)': functor.laws(λ)(List.ListT(Identity).of, runT),
+    'Identity (Functor)': functor.identity(λ)(List.ListT(Identity).of, runT),
+    'Composition (Functor)': functor.composition(λ)(List.ListT(Identity).of, runT),
+
+    // Monad tests
+    'All (Monad)': monad.laws(λ)(List.ListT(Identity), runT),
+    'Left Identity (Monad)': monad.leftIdentity(λ)(List.ListT(Identity), runT),
+    'Right Identity (Monad)': monad.rightIdentity(λ)(List.ListT(Identity), runT),
+    'Associativity (Monad)': monad.associativity(λ)(List.ListT(Identity), runT),
+
+    // Monoid tests
+    'All (Monoid)': monoid.laws(λ)(List.ListT(Identity), runT),
+    'leftIdentity (Monoid)': monoid.leftIdentity(λ)(List.ListT(Identity), runT),
+    'rightIdentity (Monoid)': monoid.rightIdentity(λ)(List.ListT(Identity), runT),
+    'associativity (Monoid)': monoid.associativity(λ)(List.ListT(Identity), runT),
+
+    // Semigroup tests
+    'All (Semigroup)': semigroup.laws(λ)(List.ListT(Identity).of, runT),
+    'associativity (Semigroup)': semigroup.associativity(λ)(List.ListT(Identity).of, runT),
+
+    'when testing reverse should return correct listT': λ.check(
+        function(a) {
+            var ListT = List.ListT(Identity),
+                x = ListT.fromArray(a).reverse(),
+                y = ListT.fromArray(a.slice().reverse());
+            return λ.equals(x, y, function(a) {
+                return function(b) {
+                    return λ.arrayEquals(a, b);
+                };
+            });
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+    'when testing filter should return correct listT': λ.check(
+        function(a) {
+            var ListT = List.ListT(Identity),
+                x = ListT.fromArray(a).filter(isEven),
+                y = ListT.fromList(List.fromArray(a).filter(isEven));
+            return λ.equals(x, y, function(a) {
+                return function(b) {
+                    return λ.arrayEquals(a, b);
+                };
+            });
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+    'when testing partition should return correct listT': λ.check(
+        function(a) {
+            var ListT = List.ListT(Identity),
+                x = ListT.fromArray(a).partition(isEven),
+                y = ListT.fromList(List.fromArray(a).partition(isEven));
+            return λ.equals(x.run.x._1, y.run.x._1, function(a) {
+                    return function(b) {
+                        return λ.arrayEquals(a, b);
+                    };
+                }) && λ.equals(x.run.x._2, y.run.x._2, function(a) {
+                    return function(b) {
+                        return λ.arrayEquals(a, b);
+                    };
+                });
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+    'when testing take should return correct listT': λ.check(
+        function(a) {
+            var ListT = List.ListT(Identity),
+                rnd = randomRange(0, a.length),
+                x = ListT.fromArray(a).take(rnd),
+                y = ListT.fromList(List.fromArray(a).take(rnd));
+            return λ.equals(x, y, function(a) {
+                return function(b) {
+                    return λ.arrayEquals(a, b);
+                };
+            });
+        },
+        [λ.arrayOf(λ.AnyVal)]
+    ),
+    'when testing zip should return correct listT': λ.check(
+        function(a, b) {
+            var ListT = List.ListT(Identity),
+                x = ListT.fromArray(a),
+                y = ListT.fromArray(b),
+                z = x.zip(y),
+                zz = ListT.fromList(List.fromArray(a).zip(List.fromArray(b)));
+            return λ.equals(z, zz, function(a) {
                 return function(b) {
                     return λ.arrayEquals(a, b);
                 };

@@ -189,6 +189,101 @@ List.fromArray = function(a) {
     return rec(0);
 };
 
+// Transformer
+List.ListT = function(M) {
+    var ListT = daggy.tagged('run'),
+        sequence = function(x) {
+            return x.fold(M.of(List.empty()), function(a, b) {
+                return a.chain(function(x) {
+                    return b.chain(function(y) {
+                        return M.of(x.concat(y));
+                    });
+                });
+            });
+        };
+    ListT.of = function(x) {
+        return ListT(M.of(List.of(x)));
+    };
+    ListT.empty = function() {
+        return ListT(M.of(List.empty()));
+    };
+    ListT.prototype.fold = function(a, b) {
+        return this.run.chain(function(o) {
+            return M.of(o.fold(a, b));
+        });
+    };
+    ListT.prototype.chain = function(f) {
+        var m = this.run;
+        return ListT(m.chain(function(o) {
+            return sequence(
+                o.fold(List.empty(), function(a, b) {
+                    return a.concat(List.of(f(b).run));
+                })
+            );
+        }));
+    };
+    ListT.prototype.concat = function(x) {
+        return ListT(sequence(
+            List.of(this.run).concat(List.of(x.run))
+        ));
+    };
+    ListT.prototype.map = function(f) {
+        return this.chain(function(a) {
+            return ListT.of(f(a));
+        });
+    };
+    ListT.prototype.ap = function(a) {
+        return this.chain(function(f) {
+            return a.map(f);
+        });
+    };
+    ListT.prototype.reverse = function() {
+        var m = this.run;
+        return ListT(m.map(function(x) {
+            return x.reverse();
+        }));
+    };
+
+    // Common
+    ListT.prototype.filter = function(f) {
+        var m = this.run;
+        return ListT(m.map(function(x) {
+            return x.filter(f);
+        }));
+    };
+    ListT.prototype.partition = function(f) {
+        var m = this.run;
+        return ListT(m.map(function(x) {
+            return x.partition(f);
+        }));
+    };
+    ListT.prototype.take = function(n) {
+        var m = this.run;
+        return ListT(m.map(function(x) {
+            return x.take(n);
+        }));
+    };
+    ListT.prototype.zip = function(x) {
+        var m = this.run,
+            n = x.run;
+        return ListT(m.chain(function(x) {
+            return n.map(function(y) {
+                return x.zip(y);
+            });
+        }));
+    };
+
+    // IO
+    ListT.fromList = function(x) {
+        return ListT(M.of(x));
+    };
+    ListT.fromArray = function(x) {
+        return ListT(M.of(List.fromArray(x)));
+    };
+
+    return ListT;
+};
+
 // Export
 if(typeof module != 'undefined')
     module.exports = List;
